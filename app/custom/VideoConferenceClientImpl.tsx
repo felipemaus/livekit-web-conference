@@ -81,6 +81,15 @@ export function VideoConferenceClientImpl(props: {
 
   useLowCPUOptimizer(room);
 
+  
+  useEffect(() => {
+    return () => {
+        if (room.state !== 'disconnected') {
+        room.disconnect();
+        }
+    };
+}, [room]);
+
   return (
     <div className="lk-room-container">
       <RoomContext.Provider value={room}>
@@ -89,7 +98,7 @@ export function VideoConferenceClientImpl(props: {
           chatMessageFormatter={formatChatMessageLinks}
           SettingsComponent={
             process.env.NEXT_PUBLIC_SHOW_SETTINGS_MENU === 'true' ? SettingsMenu : undefined
-          }
+          }       
         />
         <DebugMode logLevel={LogLevel.debug} />
       </RoomContext.Provider>

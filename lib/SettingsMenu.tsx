@@ -11,6 +11,7 @@ import {
 import styles from '../styles/SettingsMenu.module.css';
 import { CameraSettings } from './CameraSettings';
 import { MicrophoneSettings } from './MicrophoneSettings';
+import { VideoQualitySettings } from './VideoQualitySettings';
 /**
  * @alpha
  */
@@ -26,7 +27,7 @@ export function SettingsMenu(props: SettingsMenuProps) {
 
   const settings = React.useMemo(() => {
     return {
-      media: { camera: true, microphone: true, label: 'Media Devices', speaker: true },
+      media: { camera: true, microphone: true, label: 'Media Devices', speaker: true, videoQuality: true },
       recording: recordingEndpoint ? { label: 'Recording' } : undefined,
     };
   }, []);
@@ -96,6 +97,14 @@ export function SettingsMenu(props: SettingsMenuProps) {
       <div className="tab-content">
         {activeTab === 'media' && (
           <>
+          {settings.media && settings.media.videoQuality && (
+              <>
+                <h3>Video Quality</h3>
+                <section>
+                  <VideoQualitySettings />
+                </section>
+              </>
+            )}
             {settings.media && settings.media.camera && (
               <>
                 <h3>Camera</h3>
