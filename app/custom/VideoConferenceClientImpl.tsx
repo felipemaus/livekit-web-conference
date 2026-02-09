@@ -1,21 +1,23 @@
 'use client';
 
-import { formatChatMessageLinks, RoomContext, VideoConference } from '@livekit/components-react';
+import { RoomContext } from '@livekit/components-react';
 import {
   ExternalE2EEKeyProvider,
-  LogLevel,
   Room,
   RoomConnectOptions,
   RoomOptions,
   VideoPresets,
+  VideoPresets43,
   type VideoCodec,
 } from 'livekit-client';
 import { DebugMode } from '@/lib/Debug';
 import { useEffect, useMemo, useState } from 'react';
 import { KeyboardShortcuts } from '@/lib/KeyboardShortcuts';
-import { SettingsMenu } from '@/lib/SettingsMenu';
 import { useSetupE2EE } from '@/lib/useSetupE2EE';
 import { useLowCPUOptimizer } from '@/lib/usePerfomanceOptimiser';
+import { ConferenceLayout } from './components/ConferenceLayout';
+import { RecordingIndicator } from '@/lib/RecordingIndicator';
+import { VideoQualityProvider } from '../context/VideoQualityContext';
 
 export function VideoConferenceClientImpl(props: {
   liveKitUrl: string;
@@ -32,9 +34,13 @@ export function VideoConferenceClientImpl(props: {
   const roomOptions = useMemo((): RoomOptions => {
     return {
       publishDefaults: {
-        videoSimulcastLayers: [VideoPresets.h540, VideoPresets.h216],
+        videoSimulcastLayers: [VideoPresets.h720, VideoPresets43.h480,VideoPresets.h360],
         red: !e2eeEnabled,
         videoCodec: props.codec,
+        videoEncoding: {
+          maxBitrate: 3_000_000,
+          maxFramerate: 24,
+        },
       },
       adaptiveStream: { pixelDensity: 'screen' },
       dynacast: true,
@@ -93,14 +99,12 @@ export function VideoConferenceClientImpl(props: {
   return (
     <div className="lk-room-container">
       <RoomContext.Provider value={room}>
-        <KeyboardShortcuts />
-        <VideoConference
-          chatMessageFormatter={formatChatMessageLinks}
-          SettingsComponent={
-            process.env.NEXT_PUBLIC_SHOW_SETTINGS_MENU === 'true' ? SettingsMenu : undefined
-          }       
-        />
-        <DebugMode logLevel={LogLevel.debug} />
+        <VideoQualityProvider>
+          <KeyboardShortcuts />
+          <ConferenceLayout />
+          <RecordingIndicator />
+          <DebugMode />
+        </VideoQualityProvider>
       </RoomContext.Provider>
     </div>
   );

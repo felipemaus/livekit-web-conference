@@ -1,19 +1,20 @@
+// lib/videoQualityPresets.ts
 import { VideoPresets } from 'livekit-client';
 
-export type VideoQuality = 'auto' | '1080p' | '720p' | '360p' | '216p';
+export type VideoQualityKey =
+  | 'auto'
+  | '720p'
+  | '480p'
+  | '360p'
 
-export const VIDEO_QUALITY_PRESETS: Record<VideoQuality, any> = {
-  auto: undefined,
-  '1080p': VideoPresets.h1080,
-  '720p': VideoPresets.h720,
-  '360p': VideoPresets.h360,
-  '216p': VideoPresets.h216,
-};
-
-export const VIDEO_QUALITIES = {
-    auto: undefined,
-  '1080p': VideoPresets.h1080,
-  '720p': VideoPresets.h720,
-  '360p': VideoPresets.h360,
-  '216p': VideoPresets.h216,
+export const VIDEO_QUALITY_PRESETS: Record<
+  VideoQualityKey,
+  { resolution?: { width: number; height: number; frameRate?: number } }
+> = {
+  auto: {},
+  '720p': { resolution: VideoPresets.h720 },
+  '480p': {
+    resolution: { width: 854, height: 480, frameRate: 30 },
+  },
+  '360p': { resolution: VideoPresets.h360 },
 };

@@ -5,14 +5,11 @@ import { decodePassphrase } from '@/lib/client-utils';
 import { DebugMode } from '@/lib/Debug';
 import { KeyboardShortcuts } from '@/lib/KeyboardShortcuts';
 import { RecordingIndicator } from '@/lib/RecordingIndicator';
-import { SettingsMenu } from '@/lib/SettingsMenu';
 import { ConnectionDetails } from '@/lib/types';
 import {
-  formatChatMessageLinks,
   LocalUserChoices,
   PreJoin,
   RoomContext,
-  VideoConference,
 } from '@livekit/components-react';
 import {
   ExternalE2EEKeyProvider,
@@ -23,14 +20,17 @@ import {
   DeviceUnsupportedError,
   RoomEvent,
   TrackPublishDefaults,
+  setLogLevel,
+  LogLevel,
 } from 'livekit-client';
 import { useRouter } from 'next/navigation';
 import { useSetupE2EE } from '@/lib/useSetupE2EE';
 import { useLowCPUOptimizer } from '@/lib/usePerfomanceOptimiser';
+import { ConferenceLayout } from '@/app/custom/components/ConferenceLayout';
+import { VideoQualityProvider } from '@/app/context/VideoQualityContext';
 
 const CONN_DETAILS_ENDPOINT =
   process.env.NEXT_PUBLIC_CONN_DETAILS_ENDPOINT ?? '/api/connection-details';
-const SHOW_SETTINGS_MENU = process.env.NEXT_PUBLIC_SHOW_SETTINGS_MENU === 'true';
 
 export function PageClientImpl(props: {
   roomName: string;
@@ -91,6 +91,8 @@ function VideoConferenceComponent(props: {
 
   const [e2eeReady, setE2eeReady] = React.useState(false);
 
+  setLogLevel(LogLevel.error);
+
   const roomOptions = React.useMemo<RoomOptions>(() => {
     let videoCodec: VideoCodec | undefined = props.codec;
     if (e2eeEnabled && (videoCodec === 'vp9' || videoCodec === 'av1')) {
@@ -105,18 +107,12 @@ function VideoConferenceComponent(props: {
 
     return {
       publishDefaults,
-      audioCaptureDefaults: {
-        deviceId: props.userChoices.audioDeviceId ?? undefined,
-      },
-      videoCaptureDefaults: {
-        deviceId: props.userChoices.videoDeviceId ?? undefined,
-      },
       adaptiveStream: true,
       dynacast: true,
       e2ee: e2eeEnabled ? { keyProvider, worker } : undefined,
       singlePeerConnection: true,
     };
-  }, [props.codec, props.userChoices, e2eeEnabled, keyProvider, worker]);
+  }, [props.codec, e2eeEnabled, keyProvider, worker]);
 
   const room = React.useMemo(() => new Room(roomOptions), []);
 
@@ -169,25 +165,50 @@ function VideoConferenceComponent(props: {
 
   useLowCPUOptimizer(room);
 
-  
   React.useEffect(() => {
     return () => {
-        if (room.state !== 'disconnected') {
+      if (room.state !== 'disconnected') {
         room.disconnect();
-        }
+      }
     };
-}, [room]);
+  }, [room]);
+
+  React.useEffect(() => {
+    function handleLocalTrackPublished(pub: any) {
+      if (pub.track?.kind !== 'video') return;
+
+      const sender = pub.track.sender;
+      if (!sender) return;
+
+      const interval = setInterval(async () => {
+        const stats = await sender.getStats();
+
+        stats.forEach((report: any) => {
+          if (report.targetBitrate) {
+            console.log('bitrate:', Math.round(report.targetBitrate / 1000), 'kbps');
+          }
+        });
+      }, 2000);
+
+      pub.on('unpublished', () => clearInterval(interval));
+    }
+
+    room.on(RoomEvent.LocalTrackPublished, handleLocalTrackPublished);
+    return () => {
+      room.off(RoomEvent.LocalTrackPublished, handleLocalTrackPublished);
+    };
+  }, [room]);
+
 
   return (
     <div className="lk-room-container">
       <RoomContext.Provider value={room}>
+        <VideoQualityProvider>
         <KeyboardShortcuts />
-        <VideoConference
-          chatMessageFormatter={formatChatMessageLinks}
-          SettingsComponent={SHOW_SETTINGS_MENU ? SettingsMenu : undefined}
-        />
+        <ConferenceLayout />
         <RecordingIndicator />
         <DebugMode />
+        </VideoQualityProvider>
       </RoomContext.Provider>
     </div>
   );
