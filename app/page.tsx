@@ -56,7 +56,7 @@ export default function Page() {
         <div className="header">
           <img src="/images/livekit-meet-home.svg" alt="LiveKit Meet" width="360" height="45" />
           <h2>
-           LiveKit web conference TCS testing App
+           LiveKit web conference Demo App
           </h2>
         </div>
         <Suspense fallback="Loading">   

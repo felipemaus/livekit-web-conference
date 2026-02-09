@@ -43,8 +43,38 @@ export function PageClientImpl(props: {
   const [connectionDetails, setConnectionDetails] =
     React.useState<ConnectionDetails>();
 
+  const [mediaError, setMediaError] = React.useState<string | null>(null);
+
+  async function ensureMediaPermissions() {
+    try {
+
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: true,
+        video: true,
+      });
+
+      // só precisamos da permissão
+      stream.getTracks().forEach(track => track.stop());
+
+      setMediaError(null);
+      return true;
+    } catch (err) {
+      setMediaError(
+        'You need to allow the use of the camera and microphone to enter the room.',
+      );
+      return false;
+    } 
+  }
+
   const handlePreJoinSubmit = React.useCallback(
     async (values: LocalUserChoices) => {
+      
+      const allowed = await ensureMediaPermissions();
+      if (!allowed) {
+        // bloqueia entrada
+        return;
+      }
+
       setPreJoinChoices(values);
 
       const url = new URL(CONN_DETAILS_ENDPOINT, window.location.origin);
@@ -67,6 +97,19 @@ export function PageClientImpl(props: {
             onSubmit={handlePreJoinSubmit}
             onError={console.error}
           />
+
+          {mediaError && (
+            <div
+              style={{
+                marginTop: '1rem',
+                color: '#e5484d',
+                textAlign: 'center',
+                maxWidth: 320,
+              }}
+            >
+              <p>{mediaError}</p>
+            </div>
+          )}
         </div>
       ) : (
         <VideoConferenceComponent

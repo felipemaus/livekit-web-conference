@@ -38,7 +38,7 @@ export function VideoConferenceClientImpl(props: {
         red: !e2eeEnabled,
         videoCodec: props.codec,
         videoEncoding: {
-          maxBitrate: 3_000_000,
+          maxBitrate: 2_000_000,
           maxFramerate: 24,
         },
       },

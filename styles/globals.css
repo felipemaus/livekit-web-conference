@@ -82,18 +82,73 @@ h2 a {
   position: fixed;
   bottom: 0;
   width: 100%;
-  padding: 12px;
+  padding: 8px 12px;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(6px);
+  z-index: 1000;
+}
+
+/* conteúdo interno */
+.control-bar-content {
   display: flex;
   justify-content: center;
   gap: 12px;
-  background: rgba(0, 0, 0, 0.7);
-  backdrop-filter: blur(6px);
 }
 
-/* Wrapper do toggle */
-.lk-toggle-wrapper {
-  position: relative;
-  display: inline-block;
+/* desktop mantém layout normal */
+@media (min-width: 641px) {
+  .control-bar-toggle {
+    display: none;
+  }
+}
+
+/* mobile */
+@media (max-width: 640px) {
+  .custom-control-bar {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .control-bar-toggle {
+    background: transparent;
+    border: none;
+    color: #fff;
+    font-size: 14px;
+    padding: 6px;
+    cursor: pointer;
+  }
+
+  .control-bar-content {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 12px;
+    overflow: hidden;
+    transition: max-height 200ms ease, opacity 200ms ease;
+  }
+
+  /* estado minimizado */
+  .custom-control-bar.collapsed .control-bar-content {
+    max-height: 0;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  /* estado expandido */
+  .custom-control-bar.expanded .control-bar-content {
+    max-height: 400px;
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .custom-control-bar>* {
+    width: 100%;
+  }
+
+  .lk-button {
+    width: 100%;
+    justify-content: center;
+  }
 }
 
 /* Menu flutuante */
