@@ -1,17 +1,13 @@
 'use client';
 import * as React from 'react';
-import { Track } from 'livekit-client';
 import {
   useMaybeLayoutContext,
-  MediaDeviceMenu,
-  TrackToggle,
   useRoomContext,
   useIsRecording,
 } from '@livekit/components-react';
 import styles from '../styles/SettingsMenu.module.css';
 import { CameraSettings } from './CameraSettings';
 import { MicrophoneSettings } from './MicrophoneSettings';
-import { VideoQualitySettings } from './VideoQualitySettings';
 /**
  * @alpha
  */
@@ -97,14 +93,6 @@ export function SettingsMenu(props: SettingsMenuProps) {
       <div className="tab-content">
         {activeTab === 'media' && (
           <>
-          {settings.media && settings.media.videoQuality && (
-              <>
-                <h3>Video Quality</h3>
-                <section>
-                  <VideoQualitySettings />
-                </section>
-              </>
-            )}
             {settings.media && settings.media.camera && (
               <>
                 <h3>Camera</h3>
@@ -121,7 +109,7 @@ export function SettingsMenu(props: SettingsMenuProps) {
                 </section>
               </>
             )}
-            {settings.media && settings.media.speaker && (
+            {/* {settings.media && settings.media.speaker && (
               <>
                 <h3>Speaker & Headphones</h3>
                 <section className="lk-button-group">
@@ -131,7 +119,7 @@ export function SettingsMenu(props: SettingsMenuProps) {
                   </div>
                 </section>
               </>
-            )}
+            )} */}
           </>
         )}
         {activeTab === 'recording' && (
