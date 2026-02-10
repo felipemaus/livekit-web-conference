@@ -119,20 +119,22 @@ h2 a {
     cursor: pointer;
   }
 
-  .control-bar-content {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    gap: 12px;
-    overflow: hidden;
-    transition: max-height 200ms ease, opacity 200ms ease;
-  }
+    .control-bar-content {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 12px;
+      overflow: hidden;
+      overflow: visible;
+      transition: max-height 200ms ease, opacity 200ms ease;
+    }
 
   /* estado minimizado */
-  .custom-control-bar.collapsed .control-bar-content {
-    max-height: 0;
-    opacity: 0;
-    pointer-events: none;
-  }
+     .custom-control-bar.collapsed .control-bar-content {
+       max-height: 0;
+       opacity: 0;
+       pointer-events: none;
+       overflow: hidden;
+     }
 
   /* estado expandido */
   .custom-control-bar.expanded .control-bar-content {
@@ -149,6 +151,11 @@ h2 a {
     width: 100%;
     justify-content: center;
   }
+}
+
+.lk-toggle-wrapper {
+  position: relative;
+  display: inline-flex;
 }
 
 /* Menu flutuante */

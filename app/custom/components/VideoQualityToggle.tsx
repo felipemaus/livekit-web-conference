@@ -16,6 +16,12 @@ export function VideoQualityToggle() {
   const { localParticipant } = useLocalParticipant();
   const [open, setOpen] = React.useState(false);
   const { quality, setQuality } = useVideoQuality();
+  const maxBitrateByQuality: Record<VideoQualityKey, number | undefined> = {
+    auto: 2_000_000,
+    '720p': 2_000_000,
+    '480p': 1_200_000,
+    '360p': 700_000,
+  };
 
   const applyQuality = async (q: VideoQualityKey) => {
     if (!room) return;
@@ -28,31 +34,46 @@ export function VideoQualityToggle() {
       return;
     }
 
-    const sender = publication.track.sender;
+    const track = publication.track;
+    const sender = track.sender;
+    const preset = VIDEO_QUALITY_PRESETS[q];
+
+    // Atualiza UI imediatamente para refletir a escolha do usuário,
+    // mesmo em navegadores que não aceitam setParameters (Safari/iOS).
+    setQuality(q);
+    setOpen(false);
+
+    // Em mobile/Safari, alterar parâmetros do sender muitas vezes não muda
+    // a resolução capturada. Reiniciar a track aplica constraints reais.
+    await track.restartTrack(
+      preset?.resolution ? { resolution: preset.resolution } : undefined,
+    );
+
     if (!sender) return;
 
     const params = sender.getParameters();
-    const preset = VIDEO_QUALITY_PRESETS[q];
-
-    if (!preset) {
-      delete params.encodings?.[0]?.maxBitrate;
-      delete params.encodings?.[0]?.maxFramerate;
-    } else {
-      params.encodings = [
-        {
-          ...params.encodings?.[0],
-          maxBitrate:
-            (preset.resolution?.width ?? 0) *
-            (preset.resolution?.height ?? 0) *
-            1000,
-          maxFramerate: preset.resolution?.frameRate,
-        },
-      ];
+ 
+    if (!params.encodings || params.encodings.length === 0) {
+      params.encodings = [{}];
     }
 
-    await sender.setParameters(params);
-    setQuality(q);
-    setOpen(false);
+    const maxBitrate = maxBitrateByQuality[q];
+    if (maxBitrate) {
+      params.encodings[0] = {
+        ...params.encodings[0],
+        maxBitrate,
+        maxFramerate: preset?.resolution?.frameRate,
+      };
+    } else {
+      delete params.encodings?.[0]?.maxBitrate;
+      delete params.encodings?.[0]?.maxFramerate;
+    }
+
+    try {
+      await sender.setParameters(params);
+    } catch (error) {
+      console.warn('Video quality sender parameters not supported in this browser', error);
+    }
   };
 
   return (
